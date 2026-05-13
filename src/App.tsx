@@ -127,6 +127,7 @@ const Layout = ({ user, onLogout, children }: { user: User, onLogout: () => void
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
     { icon: BookOpen, label: 'Catalog', path: '/catalog' },
+    { icon: Layers, label: 'Digital Library', path: '/digital' },
     { icon: ArrowRightLeft, label: 'Lending', path: '/lending' },
     { icon: Users, label: 'Members', path: '/members' },
     { icon: BarChart3, label: 'Reports', path: '/reports' },
@@ -901,6 +902,119 @@ const Reports = () => {
     );
 };
 
+const DigitalLibrary = () => {
+    const ebooks = [
+        { title: 'Advanced Algorithms', author: 'Dr. Smith', type: 'PDF', size: '12MB', url: '#' },
+        { title: 'Neural Networks 101', author: 'AI Research', type: 'EPUB', size: '4MB', url: '#' },
+        { title: 'Clean Code principles', author: 'Robert C.', type: 'PDF', size: '8MB', url: '#' },
+        { title: 'Quantum Computing', author: 'Physics Dept', type: 'PDF', size: '15MB', url: '#' },
+        { title: 'React Performance', author: 'Tech Team', type: 'ZIP', size: '2MB', url: '#' },
+    ];
+
+    return (
+        <div className="space-y-8">
+            <header>
+                <h1 className="text-4xl font-bold text-gray-900">Digital Assets</h1>
+                <p className="text-gray-500 mt-2">Access digital copies, journals, and research papers.</p>
+            </header>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {ebooks.map((ebook, idx) => (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                        key={idx}
+                        className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-6 group hover:shadow-md transition-all"
+                    >
+                        <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                             <BookMarked size={28} />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="font-bold text-gray-900 mb-1">{ebook.title}</h3>
+                            <p className="text-xs text-gray-500 mb-2">{ebook.author} • {ebook.size}</p>
+                            <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">{ebook.type}</span>
+                        </div>
+                        <button className="p-3 bg-gray-50 text-gray-400 rounded-xl hover:bg-black hover:text-white transition-colors">
+                            <Download size={20} />
+                        </button>
+                    </motion.div>
+                ))}
+            </div>
+
+            <div className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-[3rem] p-12 text-white overflow-hidden relative">
+                <div className="relative z-10">
+                    <h2 className="text-3xl font-bold mb-4">Request Digital Copy</h2>
+                    <p className="text-indigo-100 max-w-md">Can't find what you're looking for? Submit a request and our digitizing team will process it within 48 hours.</p>
+                    <button className="mt-8 bg-white text-indigo-600 px-8 py-3 rounded-xl font-bold hover:bg-indigo-50 transition-colors">Submit Request</button>
+                </div>
+                <div className="absolute right-[-10%] top-[-10%] opacity-20 pointer-events-none rotate-12">
+                   <Layers size={400} strokeWidth={1} />
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const SettingsView = () => {
+    return (
+        <div className="space-y-8 max-w-4xl">
+            <header>
+                <h1 className="text-4xl font-bold text-gray-900">System Settings</h1>
+                <p className="text-gray-500 mt-2">Configure library rules, branding, and system defaults.</p>
+            </header>
+
+            <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+                <div className="p-10 space-y-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10 border-b border-gray-100 pb-10">
+                        <div>
+                            <h3 className="font-bold text-lg mb-2">Library Identity</h3>
+                            <p className="text-sm text-gray-500">How the system represents itself to members.</p>
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Library Name</label>
+                                <input className="w-full px-4 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-black" defaultValue="Lumina Master Library" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Contact Email</label>
+                                <input className="w-full px-4 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-black" defaultValue="support@lumina.lib" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10 border-b border-gray-100 pb-10">
+                        <div>
+                            <h3 className="font-bold text-lg mb-2">Lending Policy</h3>
+                            <p className="text-sm text-gray-500">Fine rates and borrowing duration rules.</p>
+                        </div>
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Due Period (Days)</label>
+                                    <input type="number" className="w-full px-4 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-black" defaultValue="14" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Daily Fine ($)</label>
+                                    <input type="number" className="w-full px-4 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-black" defaultValue="5" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Max Books per Member</label>
+                                <input type="number" className="w-full px-4 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-black" defaultValue="5" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end pt-4">
+                        <button className="bg-black text-white px-10 py-4 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all active:scale-95">Save Configuration</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // Main App Component
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -956,10 +1070,11 @@ export default function App() {
                         <Routes>
                             <Route path="/" element={<Dashboard />} />
                             <Route path="/catalog" element={<Catalog />} />
+                            <Route path="/digital" element={<DigitalLibrary />} />
                             <Route path="/lending" element={<Lending />} />
                             <Route path="/members" element={<Members />} />
                             <Route path="/reports" element={<Reports />} />
-                            <Route path="/settings" element={<div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-200">Library Settings Module under development.</div>} />
+                            <Route path="/settings" element={<SettingsView />} />
                         </Routes>
                     </Layout>
                 ) : <Navigate to="/login" />

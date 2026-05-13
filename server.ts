@@ -454,20 +454,27 @@ async function startServer() {
     appInstance.use(vite.middlewares);
   } else {
     // Standardize dist path for various deployments
-    const distPath = path.resolve(__dirname, 'dist');
+    // When running from dist/server.cjs, __dirname is the absolute path to the dist folder.
+    const distPath = path.resolve(__dirname);
     
     appInstance.use(express.static(distPath));
     
     // Catch-all route for SPA
     appInstance.get('*', (req, res, next) => {
-      // Skip API routes that might have fallen through
+      // Skip API routes
       if (req.path.startsWith('/api')) return next();
       
       const indexPath = path.join(distPath, 'index.html');
       res.sendFile(indexPath, (err) => {
         if (err) {
-          console.error("Failed to serve index.html:", err);
-          res.status(500).send("Application load error. Please check server logs.");
+          // Fallback if index.html is actually one level up or process.cwd()
+          const fallbackPath = path.join(process.cwd(), 'dist', 'index.html');
+          res.sendFile(fallbackPath, (err2) => {
+            if (err2) {
+              console.error("Failed to serve index.html:", err2);
+              res.status(500).send("Application load error. index.html not found.");
+            }
+          });
         }
       });
     });
