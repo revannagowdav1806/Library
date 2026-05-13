@@ -1,0 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Cormorant+Garamond:ital,wght@1,400;1,600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-serif: "Cormorant Garamond", serif;
+}
+
+@layer base {
+  body {
+    @apply font-sans antialiased bg-[#F5F5F7] text-gray-900;
+  }
+}
+
+@layer components {
+  .data-grid-header {
+    @apply font-serif italic text-[11px] opacity-50 uppercase tracking-wider text-gray-500;
+  }
+  
+  .luxury-divider {
+    @apply h-px bg-gray-200 w-full opacity-50;
+  }
+}
