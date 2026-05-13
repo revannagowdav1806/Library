@@ -5,6 +5,10 @@ import Database from "better-sqlite3";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import cors from "cors";
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Initialize Database
 const db = new Database("library.db");
@@ -222,7 +226,7 @@ function seedSampleData() {
 seedSampleData();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || "lumina-secret-key-2024";
 
 app.use(cors());
@@ -251,7 +255,12 @@ const isAdmin = (req: any, res: any, next: any) => {
 
 // API Routes
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString(), env: process.env.NODE_ENV });
+  res.json({ 
+    status: "ok", 
+    timestamp: new Date().toISOString(), 
+    env: process.env.NODE_ENV,
+    uptime: process.uptime()
+  });
 });
 
 app.post("/api/auth/login", (req, res) => {
@@ -444,15 +453,28 @@ async function startServer() {
     });
     appInstance.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
+    // Standardize dist path for various deployments
+    const distPath = path.resolve(__dirname, 'dist');
+    
     appInstance.use(express.static(distPath));
-    appInstance.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+    
+    // Catch-all route for SPA
+    appInstance.get('*', (req, res, next) => {
+      // Skip API routes that might have fallen through
+      if (req.path.startsWith('/api')) return next();
+      
+      const indexPath = path.join(distPath, 'index.html');
+      res.sendFile(indexPath, (err) => {
+        if (err) {
+          console.error("Failed to serve index.html:", err);
+          res.status(500).send("Application load error. Please check server logs.");
+        }
+      });
     });
   }
 
-  appInstance.listen(PORT, "0.0.0.0", () => {
-    console.log(`Lumina Server running on http://localhost:${PORT}`);
+  appInstance.listen(Number(PORT), "0.0.0.0", () => {
+    console.log(`Lumina Server running on http://0.0.0.0:${PORT} [${process.env.NODE_ENV || 'dev'}]`);
   });
 }
 

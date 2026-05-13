@@ -908,11 +908,21 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser && token) {
-      setUser(JSON.parse(savedUser));
+    try {
+      const savedUser = localStorage.getItem('user');
+      if (savedUser && token) {
+        const parsed = JSON.parse(savedUser);
+        if (parsed && typeof parsed === 'object') {
+          setUser(parsed);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to hydrate user session:", e);
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [token]);
 
   const handleLogin = (u: User, t: string) => {
