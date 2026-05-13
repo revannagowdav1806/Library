@@ -474,32 +474,20 @@ async function startServer() {
     console.log("[Lumina] Vite middleware mounted");
   } else {
     // In production, server.cjs is in dist/, index.html is sibling to it
-    let distPath = __dirname;
+    const distPath = __dirname;
     
-    // Check if dist/index.html exists relative to process.cwd() (alternative check)
-    const cwdDist = path.join(process.cwd(), 'dist');
-    if (path.basename(__dirname) !== 'dist' && require('fs').existsSync(path.join(cwdDist, 'index.html'))) {
-      distPath = cwdDist;
-    }
-
     console.log(`[Lumina] Serving static files from: ${distPath}`);
     appInstance.use(express.static(distPath));
     
     appInstance.get('*', (req, res, next) => {
-      // Skip API and files with extensions (likely missing assets)
-      if (req.path.startsWith('/api') || req.path.includes('.')) return next();
+      // Skip API and files with extensions
+      if (req.path.startsWith('/api') || (req.path.includes('.') && req.path !== '/')) return next();
       
       const indexPath = path.join(distPath, 'index.html');
       res.sendFile(indexPath, (err) => {
         if (err) {
           console.error(`[Lumina] Error serving index.html from ${indexPath}:`, err);
-          // Last ditch effort: try relative to cwd
-          const secondaryPath = path.join(process.cwd(), 'dist', 'index.html');
-          res.sendFile(secondaryPath, (err2) => {
-            if (err2) {
-               res.status(500).send("Critical error: index.html not found. Deployment mismatch.");
-            }
-          });
+          res.status(500).send("Critical error: index.html not found. Deployment mismatch.");
         }
       });
     });

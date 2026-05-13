@@ -6,26 +6,8 @@
     <title>My Google AI Studio App</title>
   </head>
   <body>
-    <div id="root">
-      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; color: #666;">
-        <div style="text-align: center;">
-          <h2 style="margin-bottom: 10px;">Lumina Library</h2>
-          <p id="loading-status">Starting system components...</p>
-          <noscript><p style="color: red;">JavaScript is required to run this application.</p></noscript>
-        </div>
-      </div>
-    </div>
+    <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      // Diagnostic check: if React hasn't replaced the root in 5 seconds, JS likely failed to load.
-      setTimeout(() => {
-        const status = document.getElementById('loading-status');
-        if (status && status.innerText === 'Starting system components...') {
-          status.innerHTML = '<span style="color: #e11d48;">Initialization failure. Check browser console or network paths.</span>';
-          console.error("App failed to initialize within 5 seconds. This usually means a script/asset path error or a runtime crash.");
-        }
-      }, 5000);
-    </script>
   </body>
 </html>
 
