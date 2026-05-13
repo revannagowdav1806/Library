@@ -475,8 +475,14 @@ async function startServer() {
   } else {
     // In production, server.cjs is in dist/, index.html is sibling to it
     const distPath = __dirname;
+    console.log(`[Lumina] Production Mode: Serving static files from: ${distPath}`);
+    try {
+        const files = fs.readdirSync(distPath);
+        console.log(`[Lumina] dist content: ${files.join(', ')}`);
+    } catch (e) {
+        console.error(`[Lumina] Failed to read dist: ${e}`);
+    }
     
-    console.log(`[Lumina] Serving static files from: ${distPath}`);
     appInstance.use(express.static(distPath));
     
     appInstance.get('*', (req, res, next) => {

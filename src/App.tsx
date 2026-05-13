@@ -2,17 +2,23 @@ import React, { useState, useEffect, Component, ErrorInfo, ReactNode } from 'rea
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 
 // Simple Error Boundary for diagnostic purposes
-class ErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean, error: Error | null}> {
-  constructor(props: {children: ReactNode}) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-  static getDerivedStateFromError(error: Error) {
+interface EBProps { children: React.ReactNode }
+interface EBState { hasError: boolean; error: Error | null }
+
+class ErrorBoundary extends Component<EBProps, EBState> {
+  public state: EBState = {
+    hasError: false,
+    error: null
+  };
+
+  static getDerivedStateFromError(error: Error): EBState {
     return { hasError: true, error };
   }
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("Runtime error caught:", error, errorInfo);
   }
+
   render() {
     if (this.state.hasError) {
       return (
@@ -1086,7 +1092,16 @@ export default function App() {
     localStorage.removeItem('user');
   };
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-500 font-medium">Lumina Library is waking up...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <ErrorBoundary>
