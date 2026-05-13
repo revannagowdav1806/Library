@@ -6,12 +6,17 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import cors from "cors";
 import { fileURLToPath } from 'url';
+import fs from 'fs';
+import { createRequire } from 'module';
 
+const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Initialize Database
-const db = new Database("library.db");
+const dbPath = path.resolve(process.cwd(), 'library.db');
+console.log(`[Lumina] Database path: ${dbPath}`);
+const db = new Database(dbPath);
 db.pragma("journal_mode = WAL");
 
 // Database Schema
@@ -232,6 +237,15 @@ const JWT_SECRET = process.env.JWT_SECRET || "lumina-secret-key-2024";
 app.use(cors());
 app.use(express.json());
 
+// Request logging middleware for debugging deployment issues
+app.use((req, res, next) => {
+  const isApi = req.path.startsWith('/api');
+  if (!isApi) {
+    console.log(`[Lumina] ${req.method} ${req.path}`);
+  }
+  next();
+});
+
 // Auth Middleware
 const authenticateToken = (req: any, res: any, next: any) => {
   const authHeader = req.headers['authorization'];
@@ -446,33 +460,44 @@ app.get("/api/issues", authenticateToken, (req, res) => {
 // Vite middleware setup
 async function startServer() {
   const appInstance = app;
-  if (process.env.NODE_ENV !== "production") {
+  const isProd = process.env.NODE_ENV === "production";
+  console.log(`[Lumina] Server starting in ${isProd ? 'PRODUCTION' : 'DEVELOPMENT'} mode`);
+  console.log(`[Lumina] Working Directory: ${process.cwd()}`);
+  console.log(`[Lumina] __dirname: ${__dirname}`);
+
+  if (!isProd) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
     appInstance.use(vite.middlewares);
+    console.log("[Lumina] Vite middleware mounted");
   } else {
-    // Standardize dist path for various deployments
-    // When running from dist/server.cjs, __dirname is the absolute path to the dist folder.
-    const distPath = path.resolve(__dirname);
+    // In production, server.cjs is in dist/, index.html is sibling to it
+    let distPath = __dirname;
     
+    // Check if dist/index.html exists relative to process.cwd() (alternative check)
+    const cwdDist = path.join(process.cwd(), 'dist');
+    if (path.basename(__dirname) !== 'dist' && require('fs').existsSync(path.join(cwdDist, 'index.html'))) {
+      distPath = cwdDist;
+    }
+
+    console.log(`[Lumina] Serving static files from: ${distPath}`);
     appInstance.use(express.static(distPath));
     
-    // Catch-all route for SPA
     appInstance.get('*', (req, res, next) => {
-      // Skip API routes
-      if (req.path.startsWith('/api')) return next();
+      // Skip API and files with extensions (likely missing assets)
+      if (req.path.startsWith('/api') || req.path.includes('.')) return next();
       
       const indexPath = path.join(distPath, 'index.html');
       res.sendFile(indexPath, (err) => {
         if (err) {
-          // Fallback if index.html is actually one level up or process.cwd()
-          const fallbackPath = path.join(process.cwd(), 'dist', 'index.html');
-          res.sendFile(fallbackPath, (err2) => {
+          console.error(`[Lumina] Error serving index.html from ${indexPath}:`, err);
+          // Last ditch effort: try relative to cwd
+          const secondaryPath = path.join(process.cwd(), 'dist', 'index.html');
+          res.sendFile(secondaryPath, (err2) => {
             if (err2) {
-              console.error("Failed to serve index.html:", err2);
-              res.status(500).send("Application load error. index.html not found.");
+               res.status(500).send("Critical error: index.html not found. Deployment mismatch.");
             }
           });
         }
@@ -481,7 +506,7 @@ async function startServer() {
   }
 
   appInstance.listen(Number(PORT), "0.0.0.0", () => {
-    console.log(`Lumina Server running on http://0.0.0.0:${PORT} [${process.env.NODE_ENV || 'dev'}]`);
+    console.log(`[Lumina] Listening on http://0.0.0.0:${PORT}`);
   });
 }
 

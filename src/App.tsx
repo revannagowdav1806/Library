@@ -1,5 +1,38 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, Component, ErrorInfo, ReactNode } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
+
+// Simple Error Boundary for diagnostic purposes
+class ErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean, error: Error | null}> {
+  constructor(props: {children: ReactNode}) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("Runtime error caught:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'sans-serif' }}>
+          <h1 style={{ color: '#e11d48' }}>Application Error</h1>
+          <p>The application crashed during runtime. This might be due to a missing API or a data mismatch.</p>
+          <pre style={{ background: '#f8fafc', padding: '20px', borderRadius: '12px', textAlign: 'left', display: 'inline-block', maxWidth: '100%', overflow: 'auto' }}>
+            {this.state.error?.toString()}
+          </pre>
+          <div style={{ marginTop: '20px' }}>
+            <button onClick={() => window.location.reload()} style={{ padding: '12px 24px', background: '#000', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
+              Reload Application
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 import { 
   BarChart3, 
   BookOpen, 
@@ -1056,31 +1089,33 @@ export default function App() {
   if (loading) return null;
 
   return (
-    <Router>
-      <Routes>
-        <Route 
-            path="/login" 
-            element={user ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} 
-        />
-        <Route 
-            path="/*" 
-            element={
-                user ? (
-                    <Layout user={user} onLogout={handleLogout}>
-                        <Routes>
-                            <Route path="/" element={<Dashboard />} />
-                            <Route path="/catalog" element={<Catalog />} />
-                            <Route path="/digital" element={<DigitalLibrary />} />
-                            <Route path="/lending" element={<Lending />} />
-                            <Route path="/members" element={<Members />} />
-                            <Route path="/reports" element={<Reports />} />
-                            <Route path="/settings" element={<SettingsView />} />
-                        </Routes>
-                    </Layout>
-                ) : <Navigate to="/login" />
-            } 
-        />
-      </Routes>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <Routes>
+          <Route 
+              path="/login" 
+              element={user ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} 
+          />
+          <Route 
+              path="/*" 
+              element={
+                  user ? (
+                      <Layout user={user} onLogout={handleLogout}>
+                          <Routes>
+                              <Route path="/" element={<Dashboard />} />
+                              <Route path="/catalog" element={<Catalog />} />
+                              <Route path="/digital" element={<DigitalLibrary />} />
+                              <Route path="/lending" element={<Lending />} />
+                              <Route path="/members" element={<Members />} />
+                              <Route path="/reports" element={<Reports />} />
+                              <Route path="/settings" element={<SettingsView />} />
+                          </Routes>
+                      </Layout>
+                  ) : <Navigate to="/login" />
+              } 
+          />
+        </Routes>
+      </Router>
+    </ErrorBoundary>
   );
 }
